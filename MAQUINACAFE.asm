@@ -1,68 +1,63 @@
 # T2 - MAQUINA DE CAFE - NICOLAS ELIAS SANTANA - 20200419
 .data
-    pequeno: .word 'p'
-    grande: .word 'g'
-    sim: .word 's'
-    nao: .word 'n'
+    NEW_LINE: .asciiz "...\n"
+    coffes: .asciiz "SELECIONE O TIPO DE CAFE:\n  1 = CAFE PURO;\n  2 = CAFE COM LEITE;\n  3 = MOCHACCINO\n"
+    lens: .asciiz "SELECIONE O TAMANHO:\n  1 = PEQUENO;\n  2 = GRANDE\n"
+    sugars: .asciiz "ADICIONAR AÇUCAR?:\n  1 = SIM;\n  0 = NÃO\n"
+   	FIM: .asciiz "Cafe pronto!\n"
 .text
-# logica de timer
-li 	$v0, 30        	# Carrega registrador com pedido de captura do timer do SO.
-syscall			#
-move 	$a3, $a0
-
-# SALVA AS LETRA DE SELEÇÃO
-la $t6, pequeno
-lw $t6, 0($t6)
-la $t7, grande
-lw $t7, 0($t7)
-la $t8, sim
-lw $t8, 0($t8)
-la $t9, nao
-lw $t9, 0($t9)
 
 # VARIAVEIS CAFES
-li $s1, 0 # coffe
-li $s2, 0 # milk
-li $s3, 0 # chocolate
-li $s4, 0 # sugar
+li $s1, 20 # coffe
+li $s2, 20 # milk
+li $s3, 20 # chocolate
+li $s4, 20 # sugar
 
 # VAR TAMANHO
 li $s5, 0# tamanho
+START:
+    j TYPECOFFE
 
-j TYPECOFE
+TYPECOFFE:
+    # MOSTRA TIPOS DE CAFES A SEREM SELECIONADOS
+    li  	$v0, 4
+	la	$a0, coffes	
+	syscall			
 
-TYPECOFE:
-    li $v0, 5
+    li $v0, 5# PEDE INPUT
     syscall
     move $t3, $v0 # t3 = type
 
     j TYPELENTGH
 
 TYPELENTGH:
-    li $v0, 4
+    # TAMANHOS A SEREM SELECIONADOS
+    li  	$v0, 4
+    la	$a0, lens	
     syscall
-    move $t4, $v0 # t4 = tamanho
-    beq $t4, $t6, len1
-    beq $t4, $t7, len1
 
-len1:
-    li $t4, 1 # CARREGA COM MULT 1 P PEQUENO
-    j SUGAR
-len2:
-    li $t4, 2 # CARREGA COM MULTIPLICADOR 2 P GRANDE
-    j SUGAR
+    li $v0, 5# PEDE INPUT
+    syscall
+    move $s5, $v0 # s5 = tamanho
+    
+    beq $s5, 10, recharge # func escondida para recarregar maquina
 
 SUGAR:
-    li $v0, 4
+    # TAMANHOS A SEREM SELECIONADOS
+    li  	$v0, 4
+	la	$a0, sugars	
+	syscall
+
+    li $v0, 5
     syscall
     move $t5, $v0 # t5 = açucar
 
-    beq $t5, $t8, sim1
-    beq $t5, $t9, nao1
-sim1:
+    beq $t5, 1, sim
+    beq $t5, 0, nao
+sim:
     li $t5, 1
     J CHECK
-nao1:
+nao:
     li $t5, 0
     J CHECK
 
@@ -70,32 +65,35 @@ CHECK:
     beq $t3, 1, type1
     beq $t3, 2, type2
     beq $t3, 3, type3
-    j TYPECOFE# VALOR ERRADO RESETA MAQUINA
+    j TYPECOFFE# VALOR ERRADO RESETA MAQUINA
 
 type1:
-    slt $t2, $s1, $s5, 
-    beq $t2, 1, TYPECOFE# DEU RUIM N TEM CAFE
+    slt $t2, $s1, $s5# VERIFICA SE TEM CAFE SUFICIENTE
+    beq $t2, 1, TYPECOFFE# DEU RUIM N TEM CAFE
     j MAKE# deu bom
 type2:
     slt $t2, $s2, $s5
-    beq $t2, 1, TYPECOFE# DEU RUIM N TEM MILK TENTA DNV
+    beq $t2, 1, TYPECOFFE# DEU RUIM N TEM MILK TENTA DNV
     slt $t2, $s1, $s5
-    beq $t2, 1, TYPECOFE# DEU RUIM N TEM CAFE TENTA DNV
+    beq $t2, 1, TYPECOFFE# DEU RUIM N TEM CAFE TENTA DNV
     j MAKE# deu bom
 type3:
     slt $t2, $s3, $s5
-    beq $t2, 1, TYPECOFE# DEU RUIM N TEM MILK TENTA DNV
+    beq $t2, 1, TYPECOFFE# DEU RUIM N TEM CHOCO TENTA DNV
     slt $t2, $s1, $s5
-    beq $t2, 1, TYPECOFE# DEU RUIM N TEM CAFE TENTA DNV
+    beq $t2, 1, TYPECOFFE# DEU RUIM N TEM CAFE TENTA DNV
     j MAKE# deu bom
 
 MAKE:
+    # LOGICA DE TEMPO A SER CALCULADA DEPOIS
+    li $t8, 5000# tempo do pequeno
+    mul $t9, $t8, $s5# se for grande x2 se for pequeno x1
     beq $t3, 1, make1
-    beq $t3, 1, make2
-    beq $t3, 1, make3
+    beq $t3, 2, make2
+    beq $t3, 3, make3
 
 make1:
-    sub $s1, $s1, $s5
+    sub $s1, $s1, $s5# cafe
     
     j DIABETE
 make2:
@@ -111,20 +109,24 @@ make3:
 
 DIABETE:
     # LOGICA DE ESPERA
-    
-    li 	$v0, 30        	# Carrega registrador com pedido de captura do timer do SO.  
-	syscall			#
-	move 	$a2, $a0	#
-	sub    	$t2, $a3, $a2	#
-	sle	$t3, $t2, 2000  # Set se for menor ou igual. Neste exemplo, contagem de até 2 segundos (+/-).
-	bgtz  	$t3, DIABETE	#
+	li 	$v0, 30        	# Carrega registrador com pedido de captura do timer do SO.  
+	syscall
+	move 	$t0, $a0
+	sub    	$t2, $t0, $t1
+	sle	$s0, $t2, $t9 
+	bgtz  	$s0, DIABETE
+		
+	li  	$v0, 4		# Terminou o tempo (2 egundos).
+	la	$a0, FIM
+	syscall
 
-
-    beq $t5, $zero, IMPRIME
-    subi $s4, $s4, 1
-    
+    li $t8, 1
+    slt $t7, $s4, $t8 # ve se tem açucar
+    beq $t7, 1, TYPECOFFE
     J IMPRIME
 
 IMPRIME:
     # MOSTRAR RESULTADO,
-    J TYPECOFE# RESETA MAQUINA
+    J TYPECOFFE# RESETA MAQUINA
+
+recharge:
