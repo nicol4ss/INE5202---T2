@@ -7,6 +7,10 @@
    	FIM: .asciiz "Cafe pronto!\n"
 .text
 
+li 	$v0, 30        	# Carrega registrador com pedido de captura do timer do SO.
+syscall	
+move 	$t9, $a0
+
 # VARIAVEIS CAFES
 li $s1, 20 # coffe
 li $s2, 20 # milk
@@ -86,7 +90,7 @@ type3:
 
 MAKE:
     # LOGICA DE TEMPO A SER CALCULADA DEPOIS
-    li $t8, 5000# tempo do pequeno
+    li $t8, 50# tempo do pequeno
     mul $t9, $t8, $s5# se for grande x2 se for pequeno x1
     beq $t3, 1, make1
     beq $t3, 2, make2
@@ -112,8 +116,8 @@ DIABETE:
 	li 	$v0, 30        	# Carrega registrador com pedido de captura do timer do SO.  
 	syscall
 	move 	$t0, $a0
-	sub    	$t2, $t0, $t1
-	sle	$s0, $t2, $t9 
+	sub    	$t2, $t0, $t9
+	sle	$s0, $t2, $t8
 	bgtz  	$s0, DIABETE
 		
 	li  	$v0, 4		# Terminou o tempo (2 egundos).
