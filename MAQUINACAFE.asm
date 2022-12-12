@@ -14,11 +14,14 @@
    	GRANDE: .asciiz "GRANDE - "
    	SIM: .asciiz "AÇUCAR? SIM."
    	NAO: .asciiz "AÇUCAR? NAO."
+   	RECARGA: .asciiz "DIGITE O VALOR A SER RECARREGADO PARA CADA TIPO, CASO NÃO QUEIRA RECARREGAR ESSE TIPO DE PÓ DIGITE 0\n"
+   	RCAFE: .asciiz "CAFE?\n"
+   	RLEITE: .asciiz "LEITE?\n"
+   	RCHOCO: .asciiz "CHOCOLATE?\n"
+   	RACUCAR: .asciiz "AÇUCAR?\n"
+   	RFINALIZA: .asciiz "RECARGA COMPLETA!\n"
+   	INICIA: .asciiz "DIGITE 1 PARA INICIAR O ATENDIMENTO\n"
 .text
-
-li 	$v0, 30        	# Carrega registrador com pedido de captura do timer do SO.
-syscall	
-move 	$t9, $a0
 
 # VARIAVEIS CAFES
 li $s1, 20 # coffe
@@ -29,8 +32,17 @@ li $s4, 20 # sugar
 # VAR TAMANHO
 li $s5, 0# tamanho
 START:
-    j TYPECOFFE
+    li  	$v0, 4
+	la	$a0, INICIA	
+	syscall			
 
+    li $v0, 5# inicia atendimento
+    syscall
+    move $t9, $v0
+    beq $t9, 10, recharge# funcao escondida para recarregar maquina
+    beq $t9, 1, TYPECOFFE
+    j START# BURRAO N DIGITO CERTO
+    
 TYPECOFFE:
     # MOSTRA TIPOS DE CAFES A SEREM SELECIONADOS
     li  	$v0, 4
@@ -52,8 +64,7 @@ TYPELENTGH:
     li $v0, 5# PEDE INPUT
     syscall
     move $s5, $v0 # s5 = tamanho
-    
-    beq $s5, 10, recharge # func escondida para recarregar maquina
+    j SUGAR
 
 SUGAR:
     # TAMANHOS A SEREM SELECIONADOS
@@ -107,7 +118,7 @@ MAKE:
     move $s6, $v0
     # LOGICA DE TEMPO A SER CALCULADA DEPOIS
     li $t8, 5000# tempo do pequeno
-    mul $t9, $t8, $s5# se for grande x2 se for pequeno x1
+    mul $t5 $t8, $s5# se for grande x2 se for pequeno x1
     beq $t3, 1, make1
     beq $t3, 2, make2
     beq $t3, 3, make3
@@ -121,7 +132,7 @@ make1:
     syscall
     sub $s1, $s1, $s5# cafe
     
-    j DIABETE
+    j wait
 make2:
     # ESCREVE O TIPO QUE FOI FEITO NO ARQUIVO
     li $v0, 15
@@ -132,7 +143,7 @@ make2:
     sub $s1, $s1, $s5
     sub $s2, $s2, $s5# milk
     
-    j DIABETE
+    j wait
 make3:
     li $v0, 15
     move $a0, $s6
@@ -142,20 +153,26 @@ make3:
     sub $s1, $s1, $s5
     sub $s3, $s3, $s5# chocolate
     
-    j DIABETE
+    j wait
+wait:
+    # logica de espera da maquina
+    li 	$v0,30        	# Carrega registrador com pedido de captura do timer do SO.
+    syscall			#
+    move 	$t9, $a0	#
 
+    j DIABETE
 DIABETE:
     # LOGICA DE ESPERA
-	# li 	$v0, 30        	# Carrega registrador com pedido de captura do timer do SO.
-	# syscall
-	# move 	$t0, $a0
-	# sub    	$t2, $t0, $t9
-	# sle	$s0, $t2, $t8
-	# bgtz  	$s0, DIABETE
+	li 	$v0, 30        	# Carrega registrador com pedido de captura do timer do SO.  
+	syscall			#
+	move 	$t8, $a0	#
+	sub    	$t6, $t8, $t9	#
+	sle	$s0, $t6, $t5  # Set se for menor ou igual. Neste exemplo, contagem de at� 2 segundos (+/-).
+	bgtz  	$s0, DIABETE	#
 		
 	li  	$v0, 4		# Terminou o tempo (2 egundos).
-	la	$a0, FIM
-	syscall
+	la	$a0, FIM	#
+	syscall			#
 
     li $t8, 1
     slt $t7, $s4, $t8 # ve se tem açucar
@@ -201,3 +218,48 @@ IMPRIME4:
     J START# REINICIA A MAQUINA
     
 recharge:
+    li  	$v0, 4
+	la	$a0, RECARGA
+	syscall
+    
+    li  	$v0, 4
+	la	$a0, RCAFE
+	syscall
+    
+    li $v0, 5# PEDE INPUT
+    syscall
+    move $t3, $v0
+    add $s1, $s1, $t3
+
+    li  	$v0, 4
+	la	$a0, RLEITE
+	syscall
+    
+    li $v0, 5# PEDE INPUT
+    syscall
+    move $t3, $v0
+    add $s2, $s1, $t3
+
+    li  	$v0, 4
+	la	$a0, RCHOCO 
+	syscall
+    
+    li $v0, 5# PEDE INPUT
+    syscall
+    move $t3, $v0
+    add $s3, $s1, $t3
+
+    li  	$v0, 4
+	la	$a0, RACUCAR 
+	syscall
+
+    li $v0, 5# PEDE INPUT
+    syscall
+    move $t3, $v0
+    add $s4, $s1, $t3
+
+    li  	$v0, 4
+	la	$a0, RFINALIZA 
+	syscall
+
+    J START
