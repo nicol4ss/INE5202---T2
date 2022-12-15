@@ -1,2 +1,1 @@
-# ORG-Labs
-Labs da disciplina de ORGANIZAÇÃO DE COMPUTADORES - UFSC 2022
+# Labs e trabalhos da disciplina de ORGANIZAÇÃO DE COMPUTADORES - UFSC 2022
