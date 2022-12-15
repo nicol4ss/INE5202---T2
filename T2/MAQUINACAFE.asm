@@ -12,8 +12,8 @@
     MOCHACCINO: .asciiz "MOCHACCINO - "
    	PEQUENO: .asciiz "PEQUENO - "
    	GRANDE: .asciiz "GRANDE - "
-   	SIM: .asciiz "AÇUCAR? SIM."
-   	NAO: .asciiz "AÇUCAR? NAO."
+   	SIM: .asciiz "AÇUCAR? SIM"
+   	NAO: .asciiz "AÇUCAR? NAO"
    	RECARGA: .asciiz "DIGITE O VALOR A SER RECARREGADO PARA CADA TIPO, CASO NÃO QUEIRA RECARREGAR ESSE TIPO DE PÓ DIGITE 0\n"
    	RCAFE: .asciiz "CAFE?\n"
    	RLEITE: .asciiz "LEITE?\n"
@@ -21,6 +21,8 @@
    	RACUCAR: .asciiz "AÇUCAR?\n"
    	RFINALIZA: .asciiz "RECARGA COMPLETA!\n"
    	INICIA: .asciiz "DIGITE 1 PARA INICIAR O ATENDIMENTO\n"
+    VALORG: .asciiz " - 10,99."
+    VALORP: .asciiz " - 5,99."
 .text
 
 # VARIAVEIS CAFES
@@ -190,12 +192,25 @@ IMPRIME1:
     la $a1, PEQUENO
     li $a2, 10
     syscall
+
+    li $v0, 15
+    move $a0, $s6
+    la $a1, VALORP
+    li $a2, 9
+    syscall
+
     J IMPRIME3
 
 IMPRIME2:
     li $v0, 15
     move $a0, $s6
     la $a1, GRANDE
+    li $a2, 9
+    syscall
+
+    li $v0, 15
+    move $a0, $s6
+    la $a1, VALORG
     li $a2, 9
     syscall
     J IMPRIME3
